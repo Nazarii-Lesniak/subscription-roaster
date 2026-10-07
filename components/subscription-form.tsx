@@ -2,7 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, LoaderCircle, Plus, Search, X } from "lucide-react";
-import { type ChangeEvent, type RefObject, useEffect, useState } from "react";
+import {
+  type ChangeEvent,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { CustomDropdown } from "@/components/custom-dropdown";
@@ -39,6 +45,9 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const priceInputRef = useRef<HTMLInputElement>(null);
+  const activeSearchRef = useRef<AbortController | null>(null);
   const debounced = useDebounce(query, 500);
   const {
     register,
@@ -56,9 +65,11 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
       category: "Streaming",
     },
   });
+  const priceField = register("price", { valueAsNumber: true });
 
   useEffect(() => {
-    if (debounced.trim().length < 2) {
+    if (selected || debounced.trim().length < 2) {
+      activeSearchRef.current?.abort();
       setResults([]);
       setLoading(false);
       setSearchError(false);
@@ -66,11 +77,15 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
       return;
     }
     const controller = new AbortController();
+    activeSearchRef.current = controller;
     setLoading(true);
     setSearchError(false);
     setHasSearched(false);
     searchWeb(debounced.trim(), controller.signal)
       .then((found) => {
+        if (controller.signal.aborted) {
+          return;
+        }
         setResults(found);
         setHasSearched(true);
       })
@@ -86,8 +101,30 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
           setLoading(false);
         }
       });
-    return () => controller.abort();
-  }, [debounced]);
+    return () => {
+      controller.abort();
+      if (activeSearchRef.current === controller) {
+        activeSearchRef.current = null;
+      }
+    };
+  }, [debounced, selected]);
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !searchBoxRef.current?.contains(target)) {
+        activeSearchRef.current?.abort();
+        activeSearchRef.current = null;
+        setResults([]);
+        setHasSearched(false);
+        setSearchError(false);
+        setLoading(false);
+      }
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, []);
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
     onAdd({
@@ -104,6 +141,8 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
   };
 
   function chooseResult(result: SearchResult) {
+    activeSearchRef.current?.abort();
+    activeSearchRef.current = null;
     setSelected(result);
     setValue("name", result.title, { shouldValidate: true });
     try {
@@ -124,11 +163,33 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
     }
     setQuery(result.title);
     setResults([]);
+    setHasSearched(false);
+    setSearchError(false);
+    setLoading(false);
+    requestAnimationFrame(() =>
+      priceInputRef.current?.focus({ preventScroll: true }),
+    );
   }
 
   function handleSearchInput(event: ChangeEvent<HTMLInputElement>) {
+    activeSearchRef.current?.abort();
     setQuery(event.currentTarget.value);
     setSelected(null);
+    setResults([]);
+    setHasSearched(false);
+    setSearchError(false);
+    setLoading(false);
+  }
+
+  function clearSearch() {
+    activeSearchRef.current?.abort();
+    activeSearchRef.current = null;
+    setQuery("");
+    setSelected(null);
+    setResults([]);
+    setHasSearched(false);
+    setSearchError(false);
+    setLoading(false);
   }
 
   return (
@@ -156,7 +217,7 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
           01
         </span>
       </div>
-      <div className="relative z-10">
+      <div ref={searchBoxRef} className="relative z-10">
         <Search
           size={17}
           aria-hidden="true"
@@ -188,11 +249,7 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
             type="button"
             className="absolute right-2 top-2 grid size-7 place-items-center rounded-md text-muted transition-colors hover:bg-panel-raised hover:text-text focus-visible:outline-2 focus-visible:outline-accent"
             aria-label={t.form.clearSearch}
-            onClick={() => {
-              setQuery("");
-              setSelected(null);
-              setResults([]);
-            }}
+            onClick={clearSearch}
           >
             <X size={15} />
           </button>
@@ -299,7 +356,11 @@ export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
                 min="0.01"
                 step="0.01"
                 placeholder="9.99"
-                {...register("price", { valueAsNumber: true })}
+                {...priceField}
+                ref={(element) => {
+                  priceField.ref(element);
+                  priceInputRef.current = element;
+                }}
                 className={`h-11 w-full rounded-lg border bg-bg pl-7 pr-3 text-base text-text outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-subtle focus:ring-2 focus:ring-accent/10 sm:text-xs ${errors.price ? "border-red-400" : "border-border focus:border-accent/70"}`}
                 aria-invalid={Boolean(errors.price)}
                 aria-describedby={errors.price ? "price-error" : undefined}

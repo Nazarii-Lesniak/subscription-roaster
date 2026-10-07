@@ -16,15 +16,20 @@ const Context = createContext<{
 } | null>(null);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("system");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("subscription-roaster:theme");
     if (stored === "light" || stored === "dark" || stored === "system") {
       setTheme(stored);
     }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
     window.localStorage.setItem("subscription-roaster:theme", theme);
 
     const root = document.documentElement;
@@ -47,7 +52,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     media.addEventListener("change", sync);
 
     return () => media.removeEventListener("change", sync);
-  }, [theme]);
+  }, [hydrated, theme]);
 
   const value = useMemo(() => ({ theme, setTheme }), [theme]);
 

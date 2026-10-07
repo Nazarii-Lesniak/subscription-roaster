@@ -62,11 +62,11 @@ function DashboardContent() {
   return (
     <>
       <NeonCursor />
+      <SiteHeader onGetStarted={focusSearch} />
       <div
         id="top"
         className="relative z-10 mx-auto min-h-screen w-[calc(100%-28px)] max-w-305 sm:w-[calc(100%-56px)] 2xl:max-w-345"
       >
-        <SiteHeader onGetStarted={focusSearch} />
         <main className="pb-10">
           <section className="grid min-h-75 grid-cols-1 items-center gap-2 py-11 sm:min-h-82.5 sm:grid-cols-[1fr_330px] sm:py-17 lg:grid-cols-[1fr_410px] lg:px-2">
             <div>
@@ -94,7 +94,7 @@ function DashboardContent() {
               </div>
             </div>
             <div
-              className="relative hidden h-[220px] place-items-center sm:grid"
+              className="relative hidden h-55 place-items-center sm:grid"
               aria-hidden="true"
             >
               <div className="absolute h-22.5 w-60 rotate-[-21deg] rounded-[50%] border border-accent/15" />

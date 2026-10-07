@@ -25,6 +25,7 @@ const TranslationContext = createContext<TranslationContextValue | null>(null);
 
 export function TranslationProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const storedLanguage = window.localStorage.getItem(
@@ -33,16 +34,20 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     if (storedLanguage === "en" || storedLanguage === "uk") {
       setLanguage(storedLanguage);
     }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
     window.localStorage.setItem("subscription-roaster:language", language);
     document.documentElement.lang = language;
     document.title = dictionaries[language].meta.title;
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute("content", dictionaries[language].meta.description);
-  }, [language]);
+  }, [hydrated, language]);
 
   const format = useCallback(
     (template: string, values: Record<string, string>) =>

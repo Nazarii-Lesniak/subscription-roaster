@@ -20,6 +20,7 @@ type Props<T extends string> = {
   onChange: (value: T) => void;
   label: string;
   leadingIcon?: ReactNode;
+  hideIconOnMobile?: boolean;
   className?: string;
   compact?: boolean;
 };
@@ -31,6 +32,7 @@ export function CustomDropdown<T extends string>({
   onChange,
   label,
   leadingIcon,
+  hideIconOnMobile = false,
   className = "",
   compact = false,
 }: Props<T>) {
@@ -162,7 +164,7 @@ export function CustomDropdown<T extends string>({
         ref={triggerRef}
         id={triggerId}
         type="button"
-        className={`group flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-border bg-bg text-left text-[12px] text-text outline-none transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-accent/50 hover:bg-panel-raised focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/20 ${compact ? "border-transparent bg-transparent px-1.5" : "px-3"}`}
+        className={`group flex min-h-10 w-full items-center justify-between gap-1.5 whitespace-nowrap rounded-lg border border-border bg-bg text-left text-[12px] text-text outline-none transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-accent/50 hover:bg-panel-raised focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/20 ${compact ? "border-transparent bg-transparent px-0.5 sm:px-1.5" : "px-3"}`}
         aria-label={label}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -170,13 +172,15 @@ export function CustomDropdown<T extends string>({
         onClick={() => (open ? dismiss() : show())}
         onKeyDown={onTriggerKeyDown}
       >
-        <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
           {leadingIcon && (
-            <span className="shrink-0 text-muted transition-colors group-hover:text-accent">
+            <span
+              className={`shrink-0 text-muted transition-colors group-hover:text-accent ${hideIconOnMobile ? "hidden sm:inline-flex" : ""}`}
+            >
               {leadingIcon}
             </span>
           )}
-          <span className="truncate">{currentLabel}</span>
+          <span className="whitespace-nowrap">{currentLabel}</span>
         </span>
         <ChevronDown
           size={14}
