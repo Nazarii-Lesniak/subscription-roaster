@@ -1,17 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Check,
-  ChevronDown,
-  LoaderCircle,
-  Plus,
-  Search,
-  X,
-} from "lucide-react";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { Check, LoaderCircle, Plus, Search, X } from "lucide-react";
+import { type ChangeEvent, type RefObject, useEffect, useState } from "react";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
+import { CustomDropdown } from "@/components/custom-dropdown";
+import { useTranslation } from "@/components/translation-provider";
 import { useDebounce } from "@/hooks/use-debounce";
 import { searchWeb } from "@/lib/search";
 import { makeLogoUrl } from "@/lib/storage";
@@ -22,7 +17,6 @@ import {
   type SearchResult,
   type Subscription,
 } from "@/lib/types";
-import { useI18n } from "./i18n-provider";
 
 const schema = z.object({
   name: z.string().trim().min(2),
@@ -30,27 +24,26 @@ const schema = z.object({
   period: z.enum(["monthly", "yearly"]),
   category: z.enum(categories),
 });
-
 type FormValues = z.infer<typeof schema>;
-
 type Props = {
   onAdd: (item: Subscription) => void;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: RefObject<HTMLInputElement | null>;
+  sectionRef: RefObject<HTMLElement | null>;
 };
 
-export function SubscriptionForm({ onAdd, inputRef }: Props) {
-  const { t } = useI18n();
+export function SubscriptionForm({ onAdd, inputRef, sectionRef }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const debounced = useDebounce(query, 500);
-  const controllerRef = useRef<AbortController | null>(null);
-
   const {
     register,
     handleSubmit,
+    control,
     setValue,
     reset,
     formState: { errors, isSubmitting },
@@ -64,29 +57,27 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
     },
   });
 
-  const nameField = useMemo(() => register("name"), [register]);
-
   useEffect(() => {
     if (debounced.trim().length < 2) {
       setResults([]);
       setLoading(false);
       setSearchError(false);
-
+      setHasSearched(false);
       return;
     }
-
     const controller = new AbortController();
-
-    controllerRef.current?.abort();
-    controllerRef.current = controller;
-
     setLoading(true);
     setSearchError(false);
+    setHasSearched(false);
     searchWeb(debounced.trim(), controller.signal)
-      .then(setResults)
+      .then((found) => {
+        setResults(found);
+        setHasSearched(true);
+      })
       .catch((error: unknown) => {
         if (error instanceof Error && error.name !== "AbortError") {
           setSearchError(true);
+          setHasSearched(true);
           setResults([]);
         }
       })
@@ -95,7 +86,6 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
           setLoading(false);
         }
       });
-
     return () => controller.abort();
   }, [debounced]);
 
@@ -103,13 +93,10 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
     onAdd({
       ...values,
       id: crypto.randomUUID(),
-      category: values.category as Category,
-      period: values.period as Period,
       url: selected?.url,
       logoUrl: makeLogoUrl(selected?.url),
       createdAt: new Date().toISOString(),
     });
-
     reset({ name: "", price: 0, period: "monthly", category: "Streaming" });
     setQuery("");
     setSelected(null);
@@ -119,62 +106,88 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
   function chooseResult(result: SearchResult) {
     setSelected(result);
     setValue("name", result.title, { shouldValidate: true });
-
     try {
       const host = new URL(result.url).hostname;
+      let suggestedCategory: Category | undefined;
       if (/netflix|disney|hulu|primevideo|hbo|paramount/i.test(host)) {
-        setValue("category", "Streaming");
+        suggestedCategory = "Streaming";
       } else if (/spotify|apple\.com/i.test(host)) {
-        setValue("category", "Music");
+        suggestedCategory = "Music";
       } else if (/adobe|figma|notion|slack|microsoft/i.test(host)) {
-        setValue("category", "Software");
+        suggestedCategory = "Software";
       }
-    } catch {}
-
+      if (suggestedCategory) {
+        setValue("category", suggestedCategory);
+      }
+    } catch {
+      /* Keep the chosen result even if its URL cannot be parsed. */
+    }
     setQuery(result.title);
     setResults([]);
   }
 
-  function handleSearchInput(event: FormEvent<HTMLInputElement>) {
+  function handleSearchInput(event: ChangeEvent<HTMLInputElement>) {
     setQuery(event.currentTarget.value);
     setSelected(null);
   }
 
   return (
-    <section className="form-panel" aria-labelledby="form-heading">
-      <div className="section-heading">
+    <section
+      ref={sectionRef}
+      className="rounded-2xl border border-border bg-panel p-4 sm:p-6"
+      aria-labelledby="form-heading"
+    >
+      <div className="mb-5 flex items-start justify-between">
         <div>
-          <p className="eyebrow">01 / ADD A CHARGE</p>
-          <h2 id="form-heading">{t.search}</h2>
+          <p className="mb-1 text-[9px] font-extrabold tracking-[.13em] text-muted">
+            {t.form.step}
+          </p>
+          <h2
+            id="form-heading"
+            className="m-0 text-lg font-bold tracking-tight text-text"
+          >
+            {t.form.heading}
+          </h2>
         </div>
-        <span className="step-number">01</span>
+        <span
+          className="rounded-md border border-border px-2 py-1 text-[11px] text-subtle"
+          aria-hidden="true"
+        >
+          01
+        </span>
       </div>
-      <div className="search-wrap">
-        <Search size={17} aria-hidden="true" className="input-icon" />
+      <div className="relative z-10">
+        <Search
+          size={17}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3.5 top-3.5 text-muted"
+        />
         <input
           ref={inputRef}
-          className="field search-field"
+          className="h-11 w-full rounded-lg border border-border bg-bg px-10 pr-10 text-base text-text outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-subtle focus:border-accent/70 focus:ring-2 focus:ring-accent/10 sm:text-xs"
           type="search"
-          placeholder={t.searchHint}
+          placeholder={t.form.search}
           value={query}
-          onInput={handleSearchInput}
-          aria-label={t.search}
+          onChange={handleSearchInput}
+          aria-label={t.form.searchLabel}
           aria-controls="search-results"
-          aria-expanded={results.length > 0}
+          aria-busy={loading}
           autoComplete="off"
         />
         {loading && (
-          <LoaderCircle
-            className="spin input-trailing"
-            size={17}
-            aria-label="Loading"
-          />
+          <span className="absolute right-3 top-3.5 text-muted">
+            <LoaderCircle
+              className="animate-spin"
+              size={17}
+              aria-label={t.form.loading}
+            />
+          </span>
         )}
-        {query && (
+        {!loading && query && (
           <button
             type="button"
-            className="icon-button clear-search"
-            aria-label={t.cancel}
+            className="absolute right-2 top-2 grid size-7 place-items-center rounded-md text-muted transition-colors hover:bg-panel-raised hover:text-text focus-visible:outline-2 focus-visible:outline-accent"
+            aria-label={t.form.clearSearch}
             onClick={() => {
               setQuery("");
               setSelected(null);
@@ -184,73 +197,102 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
             <X size={15} />
           </button>
         )}
-        {(results.length > 0 || searchError) && (
-          <ul
+        {(results.length > 0 || searchError || (hasSearched && !loading)) && (
+          <div
             id="search-results"
-            className="search-results"
+            className="absolute inset-x-0 top-[calc(100%+6px)] max-h-64 overflow-auto rounded-xl border border-border bg-panel-raised p-1.5 shadow-2xl shadow-black/30"
             role="listbox"
-            aria-label={t.found}
+            aria-label={t.form.searchResults}
           >
             {searchError ? (
-              <li className="result-empty">Search is unavailable right now.</li>
+              <div className="px-2.5 py-2 text-[11px] text-muted" role="status">
+                {t.form.searchError}
+              </div>
+            ) : results.length === 0 ? (
+              <div className="px-2.5 py-2 text-[11px] text-muted">
+                {t.form.noResults}
+              </div>
             ) : (
               results.map((result) => (
-                <li key={result.url}>
+                <div key={result.url}>
                   <button
                     type="button"
                     role="option"
                     aria-selected={selected?.url === result.url}
-                    className="search-result"
+                    className="flex w-full flex-col gap-0.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent/10 focus-visible:bg-accent/10 focus-visible:outline-none"
                     onClick={() => chooseResult(result)}
                   >
-                    <span className="result-title">{result.title}</span>
-                    <span className="result-description">
+                    <span className="text-xs font-semibold text-text">
+                      {result.title}
+                    </span>
+                    <span className="max-w-full truncate text-[10px] text-muted">
                       {result.description}
                     </span>
-                    <span className="result-url">{result.url}</span>
+                    <span className="text-[9px] text-subtle">{result.url}</span>
                   </button>
-                </li>
+                </div>
               ))
             )}
-          </ul>
+          </div>
         )}
       </div>
       {selected && (
-        <p className="selected-result">
-          <Check size={14} /> {t.chooseResult}:{" "}
-          <a href={selected.url} target="_blank" rel="noreferrer">
+        <p className="mt-2 flex items-center gap-1.5 text-[10px] text-accent">
+          <Check size={14} />
+          <span>{t.form.selectedResult}:</span>
+          <a
+            href={selected.url}
+            target="_blank"
+            rel="noreferrer"
+            className="underline decoration-accent/40 underline-offset-2"
+          >
             {new URL(selected.url).hostname}
           </a>
         </p>
       )}
+
       <form
-        className="subscription-form"
+        className="mt-5 flex flex-col"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
-        <label className="field-label" htmlFor="subscription-name">
-          {t.name}
+        <label
+          className="mb-1.5 text-[10px] font-semibold text-muted"
+          htmlFor="subscription-name"
+        >
+          {t.form.name}
         </label>
         <input
           id="subscription-name"
-          {...nameField}
-          className={`field${errors.name ? " field-error" : ""}`}
-          placeholder="e.g. Netflix"
+          {...register("name")}
+          className={`h-11 w-full rounded-lg border bg-bg px-3 text-base text-text outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-subtle focus:ring-2 focus:ring-accent/10 sm:text-xs ${errors.name ? "border-red-400" : "border-border focus:border-accent/70"}`}
+          placeholder={t.form.namePlaceholder}
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "name-error" : undefined}
         />
         {errors.name && (
-          <span className="error-text" id="name-error">
-            {t.errors.name}
+          <span className="mb-2 mt-1 text-[10px] text-red-400" id="name-error">
+            {t.form.errors.name}
           </span>
         )}
-        <div className="form-grid">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <div>
-            <label className="field-label" htmlFor="subscription-price">
-              {t.price} <span className="muted">(USD)</span>
+            <label
+              className="mb-1.5 block text-[10px] font-semibold text-muted"
+              htmlFor="subscription-price"
+            >
+              {t.form.price}{" "}
+              <span className="font-normal text-subtle">
+                ({t.form.currency})
+              </span>
             </label>
-            <div className="price-field">
-              <span aria-hidden="true">$</span>
+            <div className="relative">
+              <span
+                className="absolute left-3 top-3 text-muted"
+                aria-hidden="true"
+              >
+                $
+              </span>
               <input
                 id="subscription-price"
                 type="number"
@@ -258,58 +300,78 @@ export function SubscriptionForm({ onAdd, inputRef }: Props) {
                 step="0.01"
                 placeholder="9.99"
                 {...register("price", { valueAsNumber: true })}
-                className={`field${errors.price ? " field-error" : ""}`}
+                className={`h-11 w-full rounded-lg border bg-bg pl-7 pr-3 text-base text-text outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-subtle focus:ring-2 focus:ring-accent/10 sm:text-xs ${errors.price ? "border-red-400" : "border-border focus:border-accent/70"}`}
                 aria-invalid={Boolean(errors.price)}
                 aria-describedby={errors.price ? "price-error" : undefined}
               />
             </div>
             {errors.price && (
-              <span className="error-text" id="price-error">
-                {t.errors.price}
+              <span
+                className="mt-1 block text-[10px] text-red-400"
+                id="price-error"
+              >
+                {t.form.errors.price}
               </span>
             )}
           </div>
           <div>
-            <label className="field-label" htmlFor="subscription-period">
-              {t.period}
+            <label
+              className="mb-1.5 block text-[10px] font-semibold text-muted"
+              htmlFor="subscription-period"
+            >
+              {t.form.period}
             </label>
-            <div className="select-wrap">
-              <select
-                id="subscription-period"
-                {...register("period")}
-                className="field select-field"
-              >
-                <option value="monthly">{t.monthly}</option>
-                <option value="yearly">{t.yearly}</option>
-              </select>
-              <ChevronDown size={15} />
-            </div>
+            <Controller
+              control={control}
+              name="period"
+              render={({ field }) => (
+                <CustomDropdown<Period>
+                  id="subscription-period"
+                  label={t.form.period}
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="w-full"
+                  options={[
+                    { value: "monthly", label: t.form.monthly },
+                    { value: "yearly", label: t.form.yearly },
+                  ]}
+                />
+              )}
+            />
           </div>
         </div>
-        <label className="field-label" htmlFor="subscription-category">
-          {t.category}
+        <label
+          className="mb-1.5 mt-3 text-[10px] font-semibold text-muted"
+          htmlFor="subscription-category"
+        >
+          {t.form.category}
         </label>
-        <div className="select-wrap">
-          <select
-            id="subscription-category"
-            {...register("category")}
-            className="field select-field"
-          >
-            {categories.map((category) => (
-              <option value={category} key={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={15} />
-        </div>
+        <Controller
+          control={control}
+          name="category"
+          render={({ field }) => (
+            <CustomDropdown<Category>
+              id="subscription-category"
+              label={t.form.category}
+              value={field.value}
+              onChange={field.onChange}
+              options={categories.map((category) => ({
+                value: category,
+                label: t.categories[category],
+              }))}
+            />
+          )}
+        />
         <button
-          className="button button-primary submit-button"
+          className="group mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-xs font-bold text-accent-ink transition-[transform,filter,box-shadow] duration-150 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-lg hover:shadow-accent/15 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent disabled:cursor-wait disabled:opacity-60"
           type="submit"
           disabled={isSubmitting}
         >
-          <Plus size={17} />
-          {t.add}
+          <Plus
+            size={17}
+            className="transition-transform group-hover:rotate-90"
+          />
+          {t.form.add}
         </button>
       </form>
     </section>
