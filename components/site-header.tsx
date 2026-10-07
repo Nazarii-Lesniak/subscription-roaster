@@ -1,83 +1,82 @@
 "use client";
-import {
-  ChevronDown,
-  Flame,
-  Languages,
-  Monitor,
-  Moon,
-  Sun,
-} from "lucide-react";
-import type { Theme } from "@/lib/types";
-import { useI18n } from "./i18n-provider";
-import { useTheme } from "./theme-provider";
+
+import { Flame, Languages, Monitor, Moon, Sun } from "lucide-react";
+import { CustomDropdown } from "@/components/custom-dropdown";
+import { useTheme } from "@/components/theme-provider";
+import { useTranslation } from "@/components/translation-provider";
+import type { Language, Theme } from "@/lib/types";
 
 type Props = { onGetStarted: () => void };
 
 export function SiteHeader({ onGetStarted }: Props) {
-  const { t, language, setLanguage } = useI18n();
+  const { language, setLanguage, t } = useTranslation();
   const { theme, setTheme } = useTheme();
-
-  const choices: { id: Theme; label: string; Icon: typeof Sun }[] = [
-    { id: "system", label: t.system, Icon: Monitor },
-    { id: "light", label: t.light, Icon: Sun },
-    { id: "dark", label: t.dark, Icon: Moon },
-  ];
+  const themeIcon =
+    theme === "light" ? (
+      <Sun size={15} />
+    ) : theme === "dark" ? (
+      <Moon size={15} />
+    ) : (
+      <Monitor size={15} />
+    );
 
   return (
-    <header className="site-header">
-      <a href="#top" className="brand" aria-label="Subscription Roaster home">
-        <span className="brand-mark">
+    <header className="sticky top-0 z-50 -mx-2 flex h-17 items-center justify-between border-b border-border bg-bg/85 px-2 backdrop-blur-xl sm:mx-0 sm:h-20.5 sm:px-0">
+      <a
+        href="#top"
+        className="group inline-flex items-center gap-2.5 rounded-lg text-[10px] font-extrabold tracking-[.105em] text-text transition-colors duration-150 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:text-xs"
+        aria-label={t.brand.home}
+      >
+        <span className="grid size-7.25 place-items-center rounded-[9px] border border-accent/25 bg-accent/10 text-accent transition-[transform,background-color] duration-200 group-hover:rotate-[-8deg] group-hover:scale-110 group-hover:bg-accent/20">
           <Flame size={18} fill="currentColor" />
         </span>
-        <span>
-          SUBSCRIPTION<span className="brand-muted">ROASTER</span>
-        </span>
+        <span>{t.brand.name}</span>
       </a>
-      <nav className="header-actions" aria-label="Preferences">
-        <label className="sr-only" htmlFor="theme-select">
-          {t.theme}
-        </label>
-        <div className="header-select">
-          <Sun className="header-select-icon" size={15} />
-          <select
-            id="theme-select"
-            value={theme}
-            onChange={(event) => setTheme(event.currentTarget.value as Theme)}
-            aria-label={t.theme}
-          >
-            {choices.map(({ id, label }) => (
-              <option value={id} key={id}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={13} />
-        </div>
-        <span className="header-divider" aria-hidden="true" />
-        <Languages size={15} className="language-icon" aria-hidden="true" />
-        <div className="header-select language-select">
-          <label className="sr-only" htmlFor="language-select">
-            {t.language}
-          </label>
-          <select
-            id="language-select"
-            value={language}
-            onChange={(event) =>
-              setLanguage(event.currentTarget.value as "en" | "uk")
-            }
-            aria-label={t.language}
-          >
-            <option value="en">EN</option>
-            <option value="uk">UA</option>
-          </select>
-          <ChevronDown size={13} />
-        </div>
+      <nav
+        className="flex items-center gap-1.5 sm:gap-3"
+        aria-label={t.header.preferences}
+      >
+        <CustomDropdown<Theme>
+          label={t.header.theme}
+          value={theme}
+          onChange={setTheme}
+          leadingIcon={themeIcon}
+          compact
+          className="w-20.5 sm:w-25.5"
+          options={[
+            { value: "system", label: t.themes.system },
+            { value: "light", label: t.themes.light },
+            { value: "dark", label: t.themes.dark },
+          ]}
+        />
+        <span
+          className="hidden h-5 w-px bg-border sm:block"
+          aria-hidden="true"
+        />
+        <CustomDropdown<Language>
+          label={t.header.language}
+          value={language}
+          onChange={setLanguage}
+          leadingIcon={<Languages size={15} />}
+          compact
+          className="w-16.5 sm:w-18.5"
+          options={[
+            { value: "en", label: t.header.englishCode },
+            { value: "uk", label: t.header.ukrainianCode },
+          ]}
+        />
         <button
           type="button"
-          className="button button-primary header-cta"
+          className="group ml-1 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-accent px-2.5 text-[10px] font-bold text-accent-ink shadow-sm shadow-accent/10 transition-[transform,filter,box-shadow] duration-150 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-md hover:shadow-accent/20 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent sm:px-3 sm:text-xs"
           onClick={onGetStarted}
         >
-          Get started <span aria-hidden="true">↗</span>
+          {t.header.getStarted}
+          <span
+            aria-hidden="true"
+            className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          >
+            ↗
+          </span>
         </button>
       </nav>
     </header>

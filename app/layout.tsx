@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import en from "@/locales/en.json";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Subscription Roaster — your recurring bills, exposed",
-  description:
-    "Track subscriptions, see what they cost, and get roasted for it.",
+  title: en.meta.title,
+  description: en.meta.description,
 };
 
 export default function RootLayout({

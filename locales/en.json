@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "title": "Subscription Roaster — your recurring bills, exposed",
+    "description": "Track subscriptions, see what they cost, and get roasted for it."
+  },
+  "brand": {
+    "name": "SUBSCRIPTION ROASTER",
+    "home": "Subscription Roaster home"
+  },
+  "header": {
+    "theme": "Theme",
+    "language": "Language",
+    "englishCode": "EN",
+    "ukrainianCode": "UA",
+    "getStarted": "Get started",
+    "preferences": "Preferences"
+  },
+  "themes": { "system": "System", "light": "Light", "dark": "Dark" },
+  "hero": {
+    "kicker": "YOUR MONEY, RECURRING",
+    "title": "Your subscriptions are",
+    "accent": "getting roasted.",
+    "subtitle": "Every little monthly charge adds up. Let’s see what your subscriptions are really costing you.",
+    "noBank": "No bank connection",
+    "private": "100% private",
+    "recurring": "recurring",
+    "dueToday": "due today"
+  },
+  "form": {
+    "step": "01 / ADD A CHARGE",
+    "heading": "Find a subscription",
+    "search": "Search for a service to get started",
+    "searchLabel": "Find a subscription",
+    "searchResults": "Search results",
+    "searchError": "Search is unavailable right now.",
+    "noResults": "No results found. Try another name.",
+    "name": "Subscription name",
+    "namePlaceholder": "e.g. Netflix",
+    "price": "Price",
+    "currency": "USD",
+    "period": "Billing period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "category": "Category",
+    "add": "Add subscription",
+    "selectedResult": "Selected service",
+    "selectHint": "Select a result to fill the name and website",
+    "loading": "Searching",
+    "clearSearch": "Clear search",
+    "errors": {
+      "name": "Enter at least 2 characters",
+      "price": "Price must be greater than 0"
+    }
+  },
+  "categories": {
+    "Streaming": "Streaming",
+    "Software": "Software",
+    "Music": "Music",
+    "Gaming": "Gaming",
+    "Productivity": "Productivity",
+    "Other": "Other"
+  },
+  "privacy": {
+    "note": "Your data stays in this browser. We never ask for your bank login."
+  },
+  "list": {
+    "step": "02 / THE DAMAGE",
+    "heading": "Your lineup",
+    "clear": "Clear all",
+    "clearConfirm": "Clear every subscription? This cannot be undone.",
+    "monthlySpend": "Monthly spend",
+    "yearlyProjection": "Yearly projection",
+    "tracked": "subscriptions tracked",
+    "ifUnchanged": "if nothing gets cancelled",
+    "empty": "Nothing to roast. Yet.",
+    "emptyHint": "Add your first subscription above and we’ll do the math.",
+    "loading": "Loading your subscriptions…",
+    "actions": "{name} actions",
+    "editDetails": "Edit details",
+    "editPrice": "Edit price",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this subscription?",
+    "settings": "SUBSCRIPTION SETTINGS",
+    "website": "{name} website",
+    "perMonth": "mo",
+    "perYear": "yr"
+  },
+  "edit": {
+    "title": "Edit {name}",
+    "save": "Save changes",
+    "cancel": "Cancel"
+  },
+  "roast": {
+    "button": "Roast my subscriptions",
+    "verdict": "The verdict is in",
+    "under100": "Under $100. Look at you, making responsible choices. Suspicious.",
+    "bands": {
+      "100": [
+        "$100 a month? Your subscriptions have a subscription to your wallet.",
+        "That’s a generous monthly donation to the autoplay button.",
+        "Your budget called. It wants to discuss boundaries."
+      ],
+      "200": [
+        "$200 monthly. You could stream your own financial thriller.",
+        "Your subscriptions are networking. Your savings are not.",
+        "At this point, your credit card deserves a day off."
+      ],
+      "300": [
+        "$300 a month? Is every app in your phone on payroll?",
+        "You’re not subscribed. You’re in a committed relationship with checkout.",
+        "Your recurring charges have recurring charges."
+      ],
+      "400": [
+        "$400 monthly. That’s a small vacation, if you stop paying for apps.",
+        "You have enough subscriptions to start a support group.",
+        "The only thing renewing faster than these is your regret."
+      ],
+      "500": [
+        "Half a grand a month? Your bank app needs a comfort animal.",
+        "You could hire a financial advisor—or cancel one streaming service.",
+        "Your subscriptions are the main character. Your paycheck is the sidekick."
+      ],
+      "600": [
+        "$600 monthly. Those apps better be doing your laundry.",
+        "You’re funding the entire ‘skip intro’ economy.",
+        "At this price, the subscriptions should be paying rent."
+      ],
+      "700": [
+        "$700? Your wallet has entered its villain origin story.",
+        "That’s a premium plan for having no money left.",
+        "You have more recurring charges than recurring hobbies."
+      ],
+      "800": [
+        "$800 monthly. Your subscriptions are basically dependents.",
+        "The only thing getting unlimited access is your billing cycle.",
+        "You could buy a very nice chair to sit in while cancelling these."
+      ],
+      "900": [
+        "$900? Please tell us at least one of these subscriptions is therapy.",
+        "Your budget spreadsheet just filed for early retirement.",
+        "You’re one trial period away from a documentary."
+      ],
+      "1000": [
+        "A thousand a month? Congratulations on your new streaming empire.",
+        "Your card isn’t declining. It’s just trying to get your attention.",
+        "At this point, you should be getting equity in these companies."
+      ]
+    }
+  },
+  "footer": {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "copyright": "Subscription Roaster. Built for your financial awakening.",
+    "madeWith": "Made with"
+  },
+  "notFound": {
+    "eyebrow": "404 · OFF THE MENU",
+    "title": "This page got cancelled.",
+    "message": "The link you followed doesn’t exist. Your subscriptions are still right where you left them.",
+    "back": "Back to the roast"
+  }
+}
