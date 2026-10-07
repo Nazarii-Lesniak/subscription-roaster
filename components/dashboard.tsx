@@ -94,7 +94,7 @@ function DashboardContent() {
               </div>
             </div>
             <div
-              className="relative hidden h-[220px] place-items-center sm:grid"
+              className="relative hidden h-55 place-items-center sm:grid"
               aria-hidden="true"
             >
               <div className="absolute h-22.5 w-60 rotate-[-21deg] rounded-[50%] border border-accent/15" />

@@ -8,7 +8,7 @@ export function NotFoundContent() {
   const { t } = useTranslation();
   return (
     <main className="grid min-h-screen place-items-center bg-bg px-6 text-center text-text">
-      <div className="max-w-[480px]">
+      <div className="max-w-120">
         <span className="mb-5 inline-grid size-14 place-items-center rounded-2xl bg-accent/10 text-accent">
           <Flame size={26} />
         </span>
@@ -18,7 +18,7 @@ export function NotFoundContent() {
         <h1 className="m-0 text-[clamp(32px,8vw,46px)] font-bold leading-tight tracking-tighter">
           {t.notFound.title}
         </h1>
-        <p className="mx-auto mb-6 mt-4 max-w-[360px] text-sm text-muted">
+        <p className="mx-auto mb-6 mt-4 max-w-90 text-sm text-muted">
           {t.notFound.message}
         </p>
         <Link
