@@ -240,7 +240,7 @@ export function SubscriptionList({ items, onUpdate, onRemove }: Props) {
                   />
                 </label>
               ) : (
-                <>
+                <div className="flex items-center gap-2">
                   <strong className="text-xs tabular-nums text-text">
                     {new Intl.NumberFormat(locale, {
                       style: "currency",
@@ -252,7 +252,7 @@ export function SubscriptionList({ items, onUpdate, onRemove }: Props) {
                     /
                     {t.list[item.period === "monthly" ? "perMonth" : "perYear"]}
                   </span>
-                </>
+                </div>
               )}
             </div>
             <button
